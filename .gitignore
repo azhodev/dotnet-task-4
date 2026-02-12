@@ -41,3 +41,8 @@ appsettings.*.local.json
 # OS files
 .DS_Store
 Thumbs.db
+
+# Agent and local tooling artifacts
+.tools/
+AGENT_NOTE_TASK4.md
+AGENTS.md

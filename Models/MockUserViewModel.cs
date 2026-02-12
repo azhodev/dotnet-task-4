@@ -2,6 +2,8 @@ namespace Task4.Models;
 
 public class MockUserViewModel
 {
+    public long Id { get; init; }
+
     public required string Name { get; init; }
 
     public required string Email { get; init; }
