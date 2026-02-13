@@ -96,3 +96,10 @@ docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < docker/po
 4. После перехода по ссылке:
    - статус `unverified` меняется на `active`;
    - статус `blocked` остается `blocked`.
+
+Демо-видео локальной проверки:
+- https://www.awesomescreenshot.com/video/49410490?key=828c5b66428e95941e7fb85665c82ebf
+
+Note:
+- На локальном окружении верификация e-mail работает корректно.
+- На бесплатном тарифе Render отправка/верификация e-mail может не работать из-за ограничений платформы/SMTP.
