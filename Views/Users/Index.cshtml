@@ -31,10 +31,18 @@
         @Html.AntiForgeryToken()
         <div class="toolbar card shadow-sm mb-3">
             <div class="card-body d-flex flex-wrap align-items-center gap-2">
-                <button class="btn btn-outline-dark btn-sm toolbar-selection-action" type="submit" name="operation" value="block">🔒 Block</button>
-                <button class="btn btn-outline-secondary btn-sm toolbar-selection-action" type="submit" name="operation" value="unblock" title="Unblock selected users" data-bs-toggle="tooltip" data-bs-placement="bottom">🔓</button>
-                <button class="btn btn-outline-secondary btn-sm toolbar-selection-action" type="submit" name="operation" value="delete" title="Delete selected users" data-bs-toggle="tooltip" data-bs-placement="bottom">🗑</button>
-                <button class="btn btn-outline-secondary btn-sm" type="submit" name="operation" value="delete-unverified" title="Delete all unverified users" data-bs-toggle="tooltip" data-bs-placement="bottom">🧹</button>
+                <button class="btn btn-outline-dark btn-sm toolbar-selection-action" type="submit" name="operation" value="block">
+                    <i class="bi bi-lock-fill me-1" aria-hidden="true"></i>Block
+                </button>
+                <button class="btn btn-outline-secondary btn-sm toolbar-selection-action" type="submit" name="operation" value="unblock" title="Unblock selected users" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Unblock selected users">
+                    <i class="bi bi-unlock-fill" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm toolbar-selection-action" type="submit" name="operation" value="delete" title="Delete selected users" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Delete selected users">
+                    <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" type="submit" name="operation" value="delete-unverified" title="Delete all unverified users" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Delete all unverified users">
+                    <i class="bi bi-person-x-fill" aria-hidden="true"></i>
+                </button>
                 <input type="hidden" name="searchQuery" value="@Model.SearchQuery" />
                 <div class="ms-auto d-flex flex-wrap align-items-center gap-2">
                     <input id="usersSearchQuery" class="form-control form-control-sm" type="search" value="@Model.SearchQuery" placeholder="Search by name or e-mail" aria-label="Search by name or e-mail" autocomplete="off" autofocus />
@@ -50,7 +58,7 @@
                             <th class="checkbox-cell" scope="col">
                                 <input id="selectAll" class="form-check-input" type="checkbox" aria-label="Select all users" />
                             </th>
-                            <th scope="col">Name</th>
+                            <th scope="col">Name 1</th>
                             <th scope="col">E-mail</th>
                             <th scope="col">Status</th>
                             <th scope="col">

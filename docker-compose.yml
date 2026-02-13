@@ -18,25 +18,19 @@ services:
       timeout: 3s
       retries: 20
 
-  # mailpit:
-  #   image: axllent/mailpit:v1.23
-  #   container_name: task4-mailpit
-  #   restart: unless-stopped
-  #   ports:
-  #     - "1025:1025"
-  #     - "8025:8025"
-
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: task4-web
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+    command: dotnet watch --project Task4.csproj run --urls=http://0.0.0.0:8080
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       DATA_PROTECTION_KEYS_PATH: /var/data/dpkeys
       Smtp__Host: ${SMTP_HOST}
@@ -49,8 +43,11 @@ services:
     ports:
       - "8080:8080"
     volumes:
+      - ./:/src
+      - nuget-cache:/root/.nuget/packages
       - dp-keys:/var/data/dpkeys
 
 volumes:
   pg-data:
   dp-keys:
+  nuget-cache:
