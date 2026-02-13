@@ -8,20 +8,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, npgsqlOptions =>
         npgsqlOptions.MapEnum<UserStatus>("user_status", "app")));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddAuthentication(AppAuthConstants.Scheme)
     .AddCookie(AppAuthConstants.Scheme, options =>
     {
-        options.LoginPath = "/Mockups/Login";
-        options.AccessDeniedPath = "/Mockups/Login";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/Login";
         options.SlidingExpiration = true;
     });
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -32,7 +28,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseMigrationsEndPoint();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
@@ -53,8 +49,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
-app.MapRazorPages()
-   .WithStaticAssets();
 
 app.Run();

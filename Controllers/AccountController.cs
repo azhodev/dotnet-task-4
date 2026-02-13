@@ -11,13 +11,8 @@ using Task4.Models;
 
 namespace Task4.Controllers;
 
-public class MockupsController(AppDbContext dbContext, IPasswordHasher<User> passwordHasher) : Controller
+public class AccountController(AppDbContext dbContext, IPasswordHasher<User> passwordHasher) : Controller
 {
-    public IActionResult Index()
-    {
-        return View();
-    }
-
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> Login(string? returnUrl = null)
@@ -27,7 +22,7 @@ public class MockupsController(AppDbContext dbContext, IPasswordHasher<User> pas
             var currentUser = await GetCurrentUserAsync();
             if (currentUser is not null && currentUser.Status != UserStatus.blocked)
             {
-                return RedirectToAction(nameof(UserManagement));
+                return RedirectToAction("Index", "Users");
             }
 
             await HttpContext.SignOutAsync(AppAuthConstants.Scheme);
@@ -111,7 +106,7 @@ public class MockupsController(AppDbContext dbContext, IPasswordHasher<User> pas
             return Redirect(model.ReturnUrl);
         }
 
-        return RedirectToAction(nameof(UserManagement));
+        return RedirectToAction("Index", "Users");
     }
 
     [HttpPost]
@@ -169,122 +164,8 @@ public class MockupsController(AppDbContext dbContext, IPasswordHasher<User> pas
         return RedirectToAction(nameof(RegistrationSuccess));
     }
 
-    [HttpGet]
-    [Authorize(AuthenticationSchemes = AppAuthConstants.Scheme)]
-    public async Task<IActionResult> UserManagement()
-    {
-        var redirect = await ValidateCurrentUserAccessAsync();
-        if (redirect is not null)
-        {
-            return redirect;
-        }
-
-        var users = await dbContext.Users
-            .AsNoTracking()
-            .OrderByDescending(x => x.LastLoginAt)
-            .ThenBy(x => x.Id)
-            .Select(x => new MockUserViewModel
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Email = x.Email,
-                LastActivity = (x.LastLoginAt ?? x.LastActivityAt ?? x.CreatedAt).ToString("yyyy-MM-dd HH:mm"),
-                Status = x.Status.ToString(),
-                IsSelected = false
-            })
-            .ToListAsync();
-
-        var model = new UserManagementMockViewModel
-        {
-            Users = users,
-            TotalUsers = users.Count,
-            ActiveUsers = users.Count(u => u.Status == "active"),
-            BlockedUsers = users.Count(u => u.Status == "blocked"),
-            UnverifiedUsers = users.Count(u => u.Status == "unverified")
-        };
-
-        return View(model);
-    }
-
-    [HttpPost]
-    [Authorize(AuthenticationSchemes = AppAuthConstants.Scheme)]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UserManagement(string operation, List<long>? selectedIds)
-    {
-        var redirect = await ValidateCurrentUserAccessAsync();
-        if (redirect is not null)
-        {
-            return redirect;
-        }
-
-        var ids = selectedIds ?? [];
-        var normalizedOperation = operation?.Trim().ToLowerInvariant();
-        var affected = 0;
-
-        switch (normalizedOperation)
-        {
-            case "block":
-                if (ids.Count == 0)
-                {
-                    TempData["StatusError"] = "Select at least one user to block.";
-                    return RedirectToAction(nameof(UserManagement));
-                }
-
-                affected = await dbContext.Users
-                    .Where(x => ids.Contains(x.Id))
-                    .ExecuteUpdateAsync(update => update.SetProperty(x => x.Status, UserStatus.blocked));
-                TempData["StatusSuccess"] = $"Blocked users: {affected}.";
-                break;
-
-            case "unblock":
-                if (ids.Count == 0)
-                {
-                    TempData["StatusError"] = "Select at least one user to unblock.";
-                    return RedirectToAction(nameof(UserManagement));
-                }
-
-                affected = await dbContext.Users
-                    .Where(x => ids.Contains(x.Id))
-                    .ExecuteUpdateAsync(update => update.SetProperty(x => x.Status, UserStatus.active));
-                TempData["StatusSuccess"] = $"Unblocked users: {affected}.";
-                break;
-
-            case "delete":
-                if (ids.Count == 0)
-                {
-                    TempData["StatusError"] = "Select at least one user to delete.";
-                    return RedirectToAction(nameof(UserManagement));
-                }
-
-                affected = await dbContext.Users
-                    .Where(x => ids.Contains(x.Id))
-                    .ExecuteDeleteAsync();
-                TempData["StatusSuccess"] = $"Deleted users: {affected}.";
-                break;
-
-            case "delete-unverified":
-                affected = await dbContext.Users
-                    .Where(x => x.Status == UserStatus.unverified)
-                    .ExecuteDeleteAsync();
-                TempData["StatusSuccess"] = $"Deleted unverified users: {affected}.";
-                break;
-
-            default:
-                TempData["StatusError"] = "Unknown operation.";
-                break;
-        }
-
-        return RedirectToAction(nameof(UserManagement));
-    }
-
     [AllowAnonymous]
     public IActionResult RegistrationSuccess()
-    {
-        return View();
-    }
-
-    [AllowAnonymous]
-    public IActionResult Blocked()
     {
         return View();
     }
@@ -298,21 +179,6 @@ public class MockupsController(AppDbContext dbContext, IPasswordHasher<User> pas
         }
 
         return await dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId);
-    }
-
-    private async Task<IActionResult?> ValidateCurrentUserAccessAsync()
-    {
-        var currentUser = await GetCurrentUserAsync();
-        if (currentUser is null || currentUser.Status == UserStatus.blocked)
-        {
-            await HttpContext.SignOutAsync(AppAuthConstants.Scheme);
-            TempData["StatusError"] = "Your session is no longer valid. Please sign in again.";
-            return RedirectToAction(nameof(Login));
-        }
-
-        currentUser.LastActivityAt = DateTime.UtcNow;
-        await dbContext.SaveChangesAsync();
-        return null;
     }
 
     private static bool IsEmailUniqueViolation(DbUpdateException exception)

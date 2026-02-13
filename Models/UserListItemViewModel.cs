@@ -1,6 +1,6 @@
 namespace Task4.Models;
 
-public class MockUserViewModel
+public class UserListItemViewModel
 {
     public long Id { get; init; }
 

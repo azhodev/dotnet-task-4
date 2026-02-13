@@ -1,8 +1,8 @@
 namespace Task4.Models;
 
-public class UserManagementMockViewModel
+public class UserManagementViewModel
 {
-    public required IReadOnlyList<MockUserViewModel> Users { get; init; }
+    public required IReadOnlyList<UserListItemViewModel> Users { get; init; }
 
     public int TotalUsers { get; init; }
 
