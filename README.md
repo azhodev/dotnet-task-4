@@ -22,6 +22,8 @@
 Команда запуска:
 
 ```bash
+cp .env.example .env
+# edit .env
 docker compose up --build
 ```
 
@@ -49,8 +51,15 @@ docker compose down -v
 Если volume уже существует, примените SQL вручную:
 
 ```bash
-docker compose exec -T db psql -U app_user -d app_db < docker/postgres/migrations/02-email-confirmation.sql
+set -a && source .env && set +a
+docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < docker/postgres/migrations/02-email-confirmation.sql
 ```
+
+## SMTP Secrets
+
+- SMTP параметры вынесены в `.env` (файл в git не попадает).
+- Шаблон находится в `.env.example`.
+- Для Gmail используйте `App Password`, не обычный пароль аккаунта.
 
 ## Проверка подтверждения e-mail
 

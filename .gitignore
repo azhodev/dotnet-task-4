@@ -35,6 +35,7 @@ logs/
 # Environment and local config overrides
 .env
 .env.*
+!.env.example
 appsettings.Local.json
 appsettings.*.local.json
 
