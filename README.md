@@ -53,10 +53,15 @@ docker compose up -d --build
 Дальше после изменений в коде обычно достаточно:
 
 ```bash
-docker compose restart web
+docker compose up -d
 ```
 
-В большинстве случаев даже `restart` не нужен: `dotnet watch` сам перезапускает приложение.
+В большинстве случаев `dotnet watch` сам перезапускает приложение внутри контейнера.
+Если hot reload не сработал, выполните:
+
+```bash
+docker compose restart web
+```
 
 Сброс БД (с удалением volume):
 
@@ -102,4 +107,4 @@ docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < docker/po
 
 Note:
 - На локальном окружении верификация e-mail работает корректно.
-- На бесплатном тарифе Render отправка/верификация e-mail может не работать из-за ограничений платформы/SMTP.
+- В текущем деплое на Render (free tier) отправка/верификация e-mail может работать нестабильно из-за ограничений платформы/SMTP.
