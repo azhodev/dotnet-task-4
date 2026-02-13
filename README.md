@@ -31,6 +31,7 @@ docker compose up -d --build
 - приложение: `http://localhost:8080`
 - PostgreSQL: `localhost:5433`
 - SMTP: внешний SMTP-сервер из `.env` (например, Gmail SMTP)
+- Seq (логи): `http://localhost:5341`
 
 Остановка:
 
@@ -78,6 +79,14 @@ docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < docker/po
 - SMTP параметры вынесены в `.env` (файл в git не попадает).
 - Шаблон находится в `.env.example`.
 - Для Gmail используйте `App Password`, не обычный пароль аккаунта.
+
+## Логирование (Serilog + Seq)
+
+- Serilog подключен через `Serilog.AspNetCore`.
+- Активны sink'и:
+  - Console
+  - Seq
+- Логи в Seq доступны по адресу `http://localhost:5341`.
 
 ## Проверка подтверждения e-mail
 

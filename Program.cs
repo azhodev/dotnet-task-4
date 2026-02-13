@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Task4.Configuration;
 using Task4.Data;
 using Task4.Data.Models;
@@ -9,6 +10,10 @@ using Task4.Models;
 using Task4.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext());
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -43,36 +48,48 @@ builder.Services.AddHostedService<QueuedEmailSenderService>();
 builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 builder.Services.AddControllersWithViews();
 
-var app = builder.Build();
-var isRender = string.Equals(app.Configuration["RENDER"], "true", StringComparison.OrdinalIgnoreCase);
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseDeveloperExceptionPage();
+    var app = builder.Build();
+    var isRender = string.Equals(app.Configuration["RENDER"], "true", StringComparison.OrdinalIgnoreCase);
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseExceptionHandler("/Home/Error");
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
+    }
+
+    if (!isRender)
+    {
+        app.UseHttpsRedirection();
+    }
+    app.UseRouting();
+
+    app.UseAuthentication();
+    app.UseMiddleware<UserAccessValidationMiddleware>();
+    app.UseAuthorization();
+
+    app.MapStaticAssets();
+
+    app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Account}/{action=Login}/{id?}")
+        .WithStaticAssets();
+
+    app.Logger.LogInformation("Application started. Environment: {EnvironmentName}", app.Environment.EnvironmentName);
+    app.Run();
 }
-else
+catch (Exception ex)
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    Log.Fatal(ex, "Application terminated unexpectedly.");
 }
-
-if (!isRender)
+finally
 {
-    app.UseHttpsRedirection();
+    Log.CloseAndFlush();
 }
-app.UseRouting();
-
-app.UseAuthentication();
-app.UseMiddleware<UserAccessValidationMiddleware>();
-app.UseAuthorization();
-
-app.MapStaticAssets();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}")
-    .WithStaticAssets();
-
-app.Run();

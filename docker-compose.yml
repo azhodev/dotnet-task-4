@@ -18,6 +18,17 @@ services:
       timeout: 3s
       retries: 20
 
+  seq:
+    image: datalust/seq:2025.2
+    container_name: task4-seq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "5341:80"
+    volumes:
+      - seq-data:/data
+
   web:
     build:
       context: .
@@ -27,6 +38,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      seq:
+        condition: service_started
     command: dotnet watch --project Task4.csproj run --urls=http://0.0.0.0:8080
     environment:
       ASPNETCORE_ENVIRONMENT: Development
@@ -40,6 +53,7 @@ services:
       Smtp__FromEmail: ${SMTP_FROM_EMAIL}
       Smtp__FromName: ${SMTP_FROM_NAME}
       Smtp__UseSsl: ${SMTP_USE_SSL}
+      Serilog__WriteTo__1__Args__serverUrl: http://seq
     ports:
       - "8080:8080"
     volumes:
@@ -51,3 +65,4 @@ volumes:
   pg-data:
   dp-keys:
   nuget-cache:
+  seq-data:
